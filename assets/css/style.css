@@ -1,0 +1,25 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    background: linear-gradient(135deg, #1f2937 0%, #334155 100%);
+}
+
+#spinner{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(139, 181, 188, 0.6);   
+}
+
+.card{
+    box-shadow:  1px 1px 5px 1px rgb(193, 187, 190);
+}
