@@ -1,6 +1,8 @@
 const todoForm = document.getElementById("todoForm");
 const spinner = document.getElementById("spinner");
 const updateTodoBtn = document.getElementById("updateTodoBtn");
+const todoContainer = document.getElementById("todoContainer");
+
 
 const baseTodoUrl = `https://posts-crud-c2796-default-rtdb.firebaseio.com`;
 const todoUrl = `${baseTodoUrl}/todo.json`
@@ -19,6 +21,17 @@ const localState = {
     editId: null
 }
 
+function handleNoTdos() {
+    if (localState.todoArray.length === 0) {
+        todoContainer.innerHTML = `<li class="list-group-item text-center text-danger noTodo" id="noTodoLi"><strong> No Todos Yet </strong></li>`
+    } else {
+        const noTodo = document.querySelector(".noTodo");
+        if(noTodo){
+            noTodo.remove();
+        }
+    }
+}
+
 function handleSpinner(flag) {
     if (flag) {
         spinner.classList.remove("d-none");
@@ -28,11 +41,16 @@ function handleSpinner(flag) {
 }
 
 function convertObjToArr(obj) {
+    localState.todoArray = [];
+    if(!obj){
+        return
+    }
     for (let key in obj) {
         obj[key].id = key;
         localState.todoArray.unshift(obj[key]);
     }
 }
+
 
 
 //Generic function for api call 
@@ -62,7 +80,8 @@ function fetchTodos() {
     makeApiRequest(todoUrl, "GET")
         .then(data => {
             convertObjToArr(data);
-            createTodos(localState.todoArray)
+            renderTodos(localState.todoArray);
+            handleNoTdos();
         })
         .catch(err => {
             snackBar(err, "error");
@@ -74,7 +93,7 @@ function fetchTodos() {
 
 fetchTodos();
 
-function createTodos(arr) {
+function renderTodos(arr) {
     const todoContainer = document.getElementById("todoContainer");
     let res = "";
     arr.forEach(todo => {
@@ -88,6 +107,7 @@ function createTodos(arr) {
             </li>
         `
     });
+
     todoContainer.innerHTML = res;
 }
 
@@ -105,6 +125,7 @@ function onTodoCreate(event) {
             todoObj.id = data.name;
             localState.todoArray.unshift(todoObj);
             let newLi = document.createElement("li");
+            newLi.id = data.name;
             newLi.className = "list-group-item d-flex justify-content-between";
             newLi.innerHTML = `
                 <strong>${todoObj.todoItem}</strong>
@@ -113,7 +134,8 @@ function onTodoCreate(event) {
                     <button onclick="onDelete(this)" class="btn btn-sm btn-outline-danger">Remove</button>
                 </div>
         `;
-            todoContainer.prepend(newLi);
+            todoContainer.prepend(newLi);  
+            handleNoTdos();          
             snackBar(`New Tod with id : ${todoObj.id} is added successfylly...`, "success");
         })
         .catch(err => {
@@ -145,6 +167,7 @@ function onDelete(ele) {
                     const deleteIndex = localState.todoArray.findIndex(e => e.id === deleteId);
                     localState.todoArray.splice(deleteIndex, 1);
                     ele.closest("li").remove();
+                    handleNoTdos();     
                     snackBar(`Todo with id ${deleteId} is deleted successfully....`, "success");
                 })
                 .catch(err => {
@@ -161,6 +184,7 @@ function onEdit(ele) {
     const todoInputCntr = document.getElementById("todoInput");
     const addTodoBtn = document.getElementById("addTodoBtn");
     const editId = ele.closest("li").id;
+    console.log(editId);
     localState.editId = editId;
     const editObj = localState.todoArray.find(e => e.id === editId);
     todoInputCntr.value = editObj.todoItem;
@@ -184,6 +208,7 @@ function onTodoUpdate() {
             todoForm.reset();
             const udpateIndex = localState.todoArray.findIndex(e => e.id === updateId);
             localState.todoArray[udpateIndex] = updatedTodo;
+            handleNoTdos();
             let updateLi = document.getElementById(updateId);
             updateLi.querySelector("strong").innerText = updatedTodo.todoItem;
             snackBar(`Todo with id : ${updateId} is updated successfully...`, "success");
